@@ -1,0 +1,123 @@
+<!-- CPU Card Component -->
+<div class="card" id="cpu-card">
+  <div class="card-header">
+    <h2 class="card-title cpu-title">
+      <i>⚙️</i> CPU Utilization
+    </h2>
+    <div class="status-indicator status-ok" id="cpu-status"></div>
+  </div>
+  <div class="chart-container" id="cpu-chart"></div>
+  <div class="stats-grid" id="cpu-stats"></div>
+  
+  <!-- CPU Details Table (Optional) -->
+  <div class="cpu-details" id="cpu-details" style="display: none; margin-top: 20px;">
+    <table class="details-table">
+      <thead>
+        <tr>
+          <th>Core</th>
+          <th>Usage</th>
+          <th>Frequency</th>
+          <th>Temp</th>
+        </tr>
+      </thead>
+      <tbody id="cpu-cores-table">
+        <!-- Will be populated by JavaScript -->
+      </tbody>
+    </table>
+  </div>
+  
+</div>
+
+<style>
+  .details-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  
+  .details-table th {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    text-align: left;
+    font-weight: 600;
+    color: #a3d5ff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .details-table td {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .details-table tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  .core-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .core-progress-bar {
+    flex-grow: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .core-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00bcd4, #1e88e5);
+    border-radius: 4px;
+  }
+</style>
+
+<script>
+  // This would be in your main.js or a separate CPU module
+  function toggleCpuDetails() {
+    const details = document.getElementById('cpu-details');
+    const toggleBtn = document.getElementById('cpu-details-toggle');
+    
+    if (details.style.display === 'none') {
+      details.style.display = 'block';
+      toggleBtn.textContent = 'Hide Core Details';
+      updateCpuCoreDetails();
+    } else {
+      details.style.display = 'none';
+      toggleBtn.textContent = 'Show Core Details';
+    }
+  }
+  
+  function updateCpuCoreDetails() {
+    // This would be populated with real data
+    const cores = [
+      { core: 0, usage: 45, frequency: 3.8, temp: 48 },
+      { core: 1, usage: 62, frequency: 3.9, temp: 52 },
+      { core: 2, usage: 38, frequency: 3.6, temp: 46 },
+      { core: 3, usage: 71, frequency: 4.1, temp: 55 },
+      { core: 4, usage: 29, frequency: 3.5, temp: 44 },
+      { core: 5, usage: 56, frequency: 3.8, temp: 50 },
+      { core: 6, usage: 82, frequency: 4.2, temp: 58 },
+      { core: 7, usage: 41, frequency: 3.7, temp: 47 }
+    ];
+    
+    const tableBody = document.getElementById('cpu-cores-table');
+    tableBody.innerHTML = cores.map(core => `
+      <tr>
+        <td>Core ${core.core + 1}</td>
+        <td>
+          <div class="core-progress">
+            <span>${core.usage}%</span>
+            <div class="core-progress-bar">
+              <div class="core-progress-fill" style="width: ${core.usage}%"></div>
+            </div>
+          </div>
+        </td>
+        <td>${core.frequency.toFixed(1)} GHz</td>
+        <td>${core.temp}°C</td>
+      </tr>
+    `).join('');
+  }
+</script>

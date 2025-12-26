@@ -1,0 +1,243 @@
+<!-- GPU Card Component -->
+<div class="card" id="gpu-card">
+    <div class="card-header">
+        <h2 class="card-title gpu-title">
+            <i>🎮</i> GPU Status
+        </h2>
+        <div class="status-indicator status-ok" id="gpu-status"></div>
+    </div>
+
+    <!-- GPU Selection Tabs -->
+    <div class="gpu-tabs" id="gpu-tabs" style="margin-bottom: 15px; display: none;">
+        <!-- Will be populated dynamically -->
+    </div>
+
+    <div class="gpu-list" id="gpu-list">
+        <!-- Will be populated by JavaScript -->
+    </div>
+
+    <div class="stats-grid" id="gpu-stats"></div>
+
+</div>
+
+<style>
+    .gpu-tabs {
+        display: flex;
+        gap: 5px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 10px;
+    }
+
+    .gpu-tab {
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .gpu-tab:hover {
+        background: rgba(118, 185, 0, 0.1);
+    }
+
+    .gpu-tab.active {
+        background: rgba(118, 185, 0, 0.2);
+        border-color: #76b900;
+        color: #76b900;
+    }
+
+    .gpu-summary .summary-item {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    .gpu-summary .summary-label {
+        font-size: 0.8rem;
+        color: #a3d5ff;
+        margin-bottom: 5px;
+    }
+
+    .gpu-summary .summary-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .btn-action {
+        transition: all 0.3s ease;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-action.active {
+        background: rgba(118, 185, 0, 0.3) !important;
+        box-shadow: 0 0 10px rgba(118, 185, 0, 0.3);
+    }
+
+    /* GPU-specific styles */
+    .gpu-item.expanded {
+        background: rgba(118, 185, 0, 0.1);
+        border-left-color: #c5e1a5;
+    }
+
+    .gpu-advanced {
+        margin-top: 15px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        display: none;
+    }
+
+    .gpu-advanced.show {
+        display: block;
+    }
+
+    .gpu-advanced-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .gpu-advanced-item {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 0.9rem;
+    }
+
+    .gpu-advanced-label {
+        color: #a3d5ff;
+        margin-bottom: 3px;
+    }
+
+    .gpu-advanced-value {
+        font-weight: 600;
+    }
+</style>
+
+<script>
+    // GPU-specific functionality
+
+    let fanBoostActive = false;
+    let currentGpuIndex = 0;
+
+    function toggleFanBoost() {
+        fanBoostActive = !fanBoostActive;
+        const btn = document.getElementById('gpu-fan-boost');
+
+        if (fanBoostActive) {
+            btn.classList.add('active');
+            btn.innerHTML = 'Fan Boost: ON';
+            // In real app, send API call to enable fan boost
+            console.log('Fan boost enabled');
+        } else {
+            btn.classList.remove('active');
+            btn.innerHTML = 'Fan Boost';
+            console.log('Fan boost disabled');
+        }
+    }
+
+    function adjustPowerLimit() {
+        // In real app, show a slider or modal to adjust power limit
+        const newLimit = prompt('Enter new power limit (W):', '320');
+        if (newLimit && !isNaN(newLimit)) {
+            console.log(`Adjusting power limit to ${newLimit}W`);
+            // Send API call to adjust power limit
+        }
+    }
+
+    function showGpuInfo() {
+        // In real app, show detailed GPU information modal
+        alert('Detailed GPU information would appear here.\n\nDriver: 470.82\nCUDA Version: 11.4\nVRAM: 10GB GDDR6X\nBus: PCIe 4.0 x16');
+    }
+
+    function toggleGpuDetails(gpuIndex) {
+        const gpuItem = document.querySelector(`.gpu-item[data-index="${gpuIndex}"]`);
+        const advancedDiv = gpuItem.querySelector('.gpu-advanced');
+
+        if (advancedDiv.classList.contains('show')) {
+            advancedDiv.classList.remove('show');
+            gpuItem.classList.remove('expanded');
+        } else {
+            advancedDiv.classList.add('show');
+            gpuItem.classList.add('expanded');
+            updateGpuAdvancedDetails(gpuIndex);
+        }
+    }
+
+    function updateGpuAdvancedDetails(gpuIndex) {
+        // Mock advanced GPU details
+        const advancedDetails = {
+            clockGraphics: 1710 + Math.floor(Math.random() * 100),
+            clockMemory: 9500 + Math.floor(Math.random() * 500),
+            pcieGen: '4.0',
+            pcieWidth: 'x16',
+            encoderUtil: 15 + Math.floor(Math.random() * 20),
+            decoderUtil: 10 + Math.floor(Math.random() * 15),
+            perfState: 'P0',
+            voltage: 0.9 + Math.random() * 0.2
+        };
+
+        const advancedDiv = document.querySelector(`.gpu-item[data-index="${gpuIndex}"] .gpu-advanced`);
+        if (advancedDiv) {
+            advancedDiv.innerHTML = `
+        <div class="gpu-advanced-grid">
+          <div class="gpu-advanced-item">
+            <div class="gpu-advanced-label">Graphics Clock</div>
+            <div class="gpu-advanced-value">${advancedDetails.clockGraphics} MHz</div>
+          </div>
+          <div class="gpu-advanced-item">
+            <div class="gpu-advanced-label">Memory Clock</div>
+            <div class="gpu-advanced-value">${advancedDetails.clockMemory} MHz</div>
+          </div>
+          <div class="gpu-advanced-item">
+            <div class="gpu-advanced-label">PCIe</div>
+            <div class="gpu-advanced-value">${advancedDetails.pcieGen} ${advancedDetails.pcieWidth}</div>
+          </div>
+          <div class="gpu-advanced-item">
+            <div class="gpu-advanced-label">Encoder Util</div>
+            <div class="gpu-advanced-value">${advancedDetails.encoderUtil}%</div>
+          </div>
+          <div class="gpu-advanced-item">
+            <div class="gpu-advanced-label">Decoder Util</div>
+            <div class="gpu-advanced-value">${advancedDetails.decoderUtil}%</div>
+          </div>
+          <div class="gpu-advanced-item">
+            <div class="gpu-advanced-label">Performance State</div>
+            <div class="gpu-advanced-value">${advancedDetails.perfState}</div>
+          </div>
+          <div class="gpu-advanced-item">
+            <div class="gpu-advanced-label">Voltage</div>
+            <div class="gpu-advanced-value">${advancedDetails.voltage.toFixed(2)}V</div>
+          </div>
+          <div class="gpu-advanced-item">
+            <div class="gpu-advanced-label">ECC Mode</div>
+            <div class="gpu-advanced-value">Disabled</div>
+          </div>
+        </div>
+        <button class="btn-details" onclick="toggleGpuDetails(${gpuIndex})" 
+                style="margin-top: 10px; width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #a3d5ff; padding: 8px; border-radius: 5px; cursor: pointer; font-size: 0.9rem;">
+          Hide Advanced Details
+        </button>
+      `;
+        }
+    }
+
+    function updateGpuSummary(gpus) {
+        const totalMemory = gpus.reduce((sum, gpu) => sum + gpu.memoryUsed, 0) / 1024;
+        const totalPower = gpus.reduce((sum, gpu) => sum + gpu.powerDraw, 0);
+        const avgUtilization = gpus.reduce((sum, gpu) => sum + gpu.utilization, 0) / gpus.length;
+        const peakTemp = Math.max(...gpus.map(g => g.temperature || 60));
+
+        document.getElementById('total-gpu-memory').textContent = totalMemory.toFixed(1) + ' GB';
+        document.getElementById('total-gpu-power').textContent = totalPower.toFixed(0) + ' W';
+        document.getElementById('avg-gpu-utilization').textContent = avgUtilization.toFixed(1) + ' %';
+        document.getElementById('peak-gpu-temp').textContent = peakTemp + ' °C';
+    }
+</script>

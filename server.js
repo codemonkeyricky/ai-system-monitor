@@ -13,6 +13,8 @@ app.use((req, res, next) => {
 
 // Serve static files from the 'public' directory
 app.use(express.static('public'));
+app.use('/components', express.static('public/components'));
+
 
 // Add debug logging function
 const debugLog = (message) => {

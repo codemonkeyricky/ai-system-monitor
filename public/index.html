@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NVIDIA GPU & CPU Monitor - D3.js Visualization</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+
+<body>
+  <div class="container">
+    <div class="dashboard-header">
+      <h1>NVIDIA GPU & CPU Monitor</h1>
+      <p>Real-time D3.js Visualization of System Resources</p>
+
+    </div>
+
+    <!-- Component containers will be populated by JavaScript -->
+    <div class="dashboard-grid" id="dashboard-grid">
+      <!-- Components will be loaded here -->
+    </div>
+
+    <div class="last-update" id="last-update">
+      Last updated: <span id="update-time">Never</span>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+
+</html>

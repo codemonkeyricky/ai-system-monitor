@@ -1,0 +1,122 @@
+<!-- Memory Card Component -->
+<div class="card" id="memory-card">
+    <div class="card-header">
+        <h2 class="card-title memory-title">
+            <i>🧠</i> System Memory
+        </h2>
+        <div class="status-indicator status-ok" id="memory-status"></div>
+    </div>
+    <div class="chart-container" id="memory-chart"></div>
+    <div class="stats-grid" id="memory-stats"></div>
+
+</div>
+
+<style>
+    .memory-breakdown {
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        border-left: 4px solid #ff9800;
+    }
+
+    .breakdown-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .breakdown-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 5px 0;
+    }
+
+    .breakdown-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+    }
+
+    .breakdown-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+    }
+
+    .breakdown-value {
+        flex: 1;
+        text-align: right;
+        padding-right: 15px;
+        font-weight: 600;
+    }
+
+    .breakdown-percentage {
+        width: 50px;
+        text-align: right;
+        color: #a3d5ff;
+        font-size: 0.9rem;
+    }
+
+    .breakdown-progress {
+        margin-top: 10px;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+        overflow: hidden;
+        display: flex;
+    }
+
+    .breakdown-progress-segment {
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+</style>
+
+<script>
+    // Function to update memory breakdown (would be called from main.js)
+    function updateMemoryBreakdown(memoryData) {
+        const totalGB = memoryData.total / 1024;
+
+        // Mock data - in real app, get from API
+        const breakdown = {
+            used: memoryData.used / 1024,
+            cached: (totalGB * 0.15), // 15% cached
+            buffered: (totalGB * 0.05), // 5% buffered
+            free: memoryData.available / 1024
+        };
+
+        // Update display
+        document.getElementById('memory-used-breakdown').textContent = breakdown.used.toFixed(1) + ' GB';
+        document.getElementById('memory-cached-breakdown').textContent = breakdown.cached.toFixed(1) + ' GB';
+        document.getElementById('memory-buffered-breakdown').textContent = breakdown.buffered.toFixed(1) + ' GB';
+        document.getElementById('memory-free-breakdown').textContent = breakdown.free.toFixed(1) + ' GB';
+
+        // Update percentages
+        document.getElementById('memory-used-percentage').textContent = ((breakdown.used / totalGB) * 100).toFixed(1) + '%';
+        document.getElementById('memory-cached-percentage').textContent = ((breakdown.cached / totalGB) * 100).toFixed(1) + '%';
+        document.getElementById('memory-buffered-percentage').textContent = ((breakdown.buffered / totalGB) * 100).toFixed(1) + '%';
+        document.getElementById('memory-free-percentage').textContent = ((breakdown.free / totalGB) * 100).toFixed(1) + '%';
+
+        // Update visual progress bar
+        updateMemoryProgressBar(breakdown, totalGB);
+    }
+
+    function updateMemoryProgressBar(breakdown, totalGB) {
+        const progressBar = document.querySelector('.breakdown-progress');
+        if (!progressBar) {
+            // Create progress bar if it doesn't exist
+            const breakdownContainer = document.querySelector('.breakdown-container');
+            const progressBarHTML = `
+        <div class="breakdown-progress">
+          <div class="breakdown-progress-segment" style="width: ${(breakdown.used / totalGB) * 100}%; background: #4CAF50;"></div>
+          <div class="breakdown-progress-segment" style="width: ${(breakdown.cached / totalGB) * 100}%; background: #2196F3;"></div>
+          <div class="breakdown-progress-segment" style="width: ${(breakdown.buffered / totalGB) * 100}%; background: #FF9800;"></div>
+          <div class="breakdown-progress-segment" style="width: ${(breakdown.free / totalGB) * 100}%; background: #9C27B0;"></div>
+        </div>
+      `;
+            breakdownContainer.insertAdjacentHTML('beforeend', progressBarHTML);
+        }
+    }
+</script>

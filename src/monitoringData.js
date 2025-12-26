@@ -1,6 +1,7 @@
 const { getGpuUtilization } = require('./gpuData');
 const { getCpuUtilization } = require('./cpuData');
 const { getMemoryUtilization } = require('./memoryData');
+const { getDiskUsage } = require('./diskData');
 const os = require('os');
 
 // Helper function to get all monitoring data
@@ -15,6 +16,9 @@ async function getAllMonitoringData() {
     // Get memory data
     const memoryData = getMemoryUtilization();
 
+    // Get disk usage data
+    const diskData = await getDiskUsage();
+
     // Create combined response
     const response = {
       timestamp: new Date().toISOString(),
@@ -25,7 +29,8 @@ async function getAllMonitoringData() {
         freeMemory: os.freemem(),
         totalMemory: os.totalmem()
       },
-      memory: memoryData.memoryUsage
+      memory: memoryData.memoryUsage,
+      disk: diskData
     };
 
     return response;

@@ -1,0 +1,156 @@
+<!-- Disk Card Component -->
+<div class="card" id="disk-card">
+  <div class="card-header">
+    <h2 class="card-title disk-title">
+      <i>💾</i> Disk Usage
+    </h2>
+    <div class="status-indicator status-ok" id="disk-status"></div>
+  </div>
+
+  <!-- Disk Details -->
+    <h3 style="font-size: 1rem; color: #a3d5ff; margin-bottom: 10px;">Filesystems</h3>
+    <div id="filesystems-list">
+      <!-- Will be populated by JavaScript -->
+    </div>
+
+</div>
+
+<style>
+  .disk-details {
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border-left: 4px solid #ff9800;
+  }
+
+  .filesystem-item {
+    margin-bottom: 15px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    border-left: 4px solid #ff9800;
+  }
+
+  .filesystem-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .filesystem-path {
+    font-weight: 600;
+    color: #a3d5ff;
+  }
+
+  .filesystem-percentage {
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .progress-container {
+    margin-top: 10px;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+  }
+
+  .progress-bar {
+    height: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.5s ease;
+  }
+
+  .disk-fill {
+    background: linear-gradient(90deg, #ff9800, #ff5722);
+  }
+
+  .filesystem-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #a3d5ff;
+  }
+
+  .disk-summary .summary-item {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  .disk-summary .summary-label {
+    font-size: 0.8rem;
+    color: #a3d5ff;
+    margin-bottom: 5px;
+  }
+
+  .disk-summary .summary-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+</style>
+
+<script>
+  // Function to update disk summary (would be called from main.js)
+  function updateDiskSummary(diskData) {
+    const root = diskData.root;
+
+    if (!root) return;
+
+    const totalGB = root.total / 1024;
+    const usedGB = root.used / 1024;
+    const freeGB = root.free / 1024;
+
+    document.getElementById('disk-total-space').textContent = totalGB.toFixed(1) + ' GB';
+    document.getElementById('disk-used-space').textContent = usedGB.toFixed(1) + ' GB';
+    document.getElementById('disk-free-space').textContent = freeGB.toFixed(1) + ' GB';
+    document.getElementById('disk-percentage').textContent = root.percentage.toFixed(1) + '%';
+  }
+
+  // Function to update filesystems list
+  function updateFilesystemsList(diskData) {
+    const filesystemsContainer = document.getElementById('filesystems-list');
+
+    if (!diskData.nvmeDevices || diskData.nvmeDevices.length === 0) {
+      filesystemsContainer.innerHTML = '<p style="color: #a3d5ff; text-align: center;">No NVMe devices found</p>';
+      return;
+    }
+
+    const filesystemsHTML = diskData.nvmeDevices.map(fs => {
+      const totalGB = fs.total / 1024;
+      const usedGB = fs.used / 1024;
+      const freeGB = fs.free / 1024;
+
+      return `
+        <div class="filesystem-item">
+          <div class="filesystem-header">
+            <div class="filesystem-path">${fs.path}</div>
+            <div class="filesystem-percentage">${fs.percentage.toFixed(1)}%</div>
+          </div>
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div class="progress-fill disk-fill" style="width: ${fs.percentage}%"></div>
+            </div>
+          </div>
+          <div class="filesystem-stats">
+            <span>Used: ${usedGB.toFixed(1)} GB</span>
+            <span>Free: ${freeGB.toFixed(1)} GB</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    filesystemsContainer.innerHTML = filesystemsHTML;
+  }
+</script>
