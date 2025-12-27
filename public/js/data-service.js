@@ -6,7 +6,8 @@ let monitoringData = {
   memory: { history: [], current: null },
   gpus: { history: [], current: [] },
   disk: { history: [], current: null },
-  system: { history: [], current: null }
+  system: { history: [], current: null },
+  network: { history: [], current: null }
 };
 
 // Fetch real data from API
@@ -27,6 +28,22 @@ async function fetchRealData() {
 
 // Process data from API
 function processData(data) {
+    // Process Network data
+    if (data.network) {
+      monitoringData.network.current = data.network;
+      // For each interface, store rx_kBs+tx_kBs sum for bandwidth
+      const totalBandwidth = (data.network.interfaces || []).reduce((acc, iface) => acc + (iface.rx_kBs || 0) + (iface.tx_kBs || 0), 0);
+      // Ensure timestamp is a Date object for d3 scaleTime
+      let ts = data.network.timestamp;
+      if (typeof ts === 'string') ts = new Date(ts);
+      monitoringData.network.history.push({
+        timestamp: ts,
+        totalBandwidth
+      });
+      if (monitoringData.network.history.length > config.maxDataPoints) {
+        monitoringData.network.history.shift();
+      }
+    }
   // Process CPU data
   if (data.cpu) {
     monitoringData.cpu.current = data.cpu;
@@ -99,7 +116,8 @@ function transformApiData(apiData) {
     },
     gpus: apiData.gpus || apiData.gpu_list || [],
     disk: apiData.disk || {},
-    system: apiData.system || {}
+    system: apiData.system || {},
+    network: apiData.network || null
   };
 }
 

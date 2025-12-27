@@ -1,7 +1,7 @@
 
 import { config } from './config.js';
 import { fetchRealData, processData } from './data-service.js';
-import { initCpuChart, initMemoryChart, updateAllCharts } from './charts.js';
+import { initCpuChart, initMemoryChart, updateAllCharts, initNetworkChart } from './charts.js';
 import { updateAllComponents } from './components.js';
 
 let refreshInterval = null;
@@ -30,21 +30,25 @@ async function loadComponent(componentName) {
 // Initialize charts and load components
 async function initializeDashboard() {
   try {
-    // Load all components in parallel
-    const [cpuHtml, gpuHtml, memoryHtml, diskHtml] = await Promise.all([
+
+    // Load all components in parallel (add network)
+    const [cpuHtml, gpuHtml, memoryHtml, diskHtml, networkHtml] = await Promise.all([
       loadComponent('cpu-card'),
       loadComponent('gpu-card'),
       loadComponent('memory-card'),
-      loadComponent('disk-card')
+      loadComponent('disk-card'),
+      loadComponent('network-card')
     ]);
 
     // Insert components into dashboard
     const dashboardGrid = document.getElementById('dashboard-grid');
-    dashboardGrid.innerHTML = cpuHtml + gpuHtml + memoryHtml + diskHtml;
+    dashboardGrid.innerHTML = cpuHtml + gpuHtml + memoryHtml + diskHtml + networkHtml;
+
 
     // Now initialize the charts
     initCpuChart();
     initMemoryChart();
+    if (typeof initNetworkChart === 'function') initNetworkChart();
 
     // Load initial data
     await updateAllData();

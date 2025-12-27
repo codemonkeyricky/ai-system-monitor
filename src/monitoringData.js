@@ -3,6 +3,7 @@ const { getCpuUtilization } = require('./cpuData');
 const { getMemoryUtilization } = require('./memoryData');
 const { getDiskUsage } = require('./diskData');
 const os = require('os');
+const { getNetworkBandwidth } = require('./networkData');
 
 // Helper function to get all monitoring data
 async function getAllMonitoringData() {
@@ -19,6 +20,9 @@ async function getAllMonitoringData() {
     // Get disk usage data
     const diskData = await getDiskUsage();
 
+    // Get network bandwidth data
+    const networkData = await getNetworkBandwidth();
+
     // Create combined response
     const response = {
       timestamp: new Date().toISOString(),
@@ -30,7 +34,8 @@ async function getAllMonitoringData() {
         totalMemory: os.totalmem()
       },
       memory: memoryData.memoryUsage,
-      disk: diskData
+      disk: diskData,
+      network: networkData
     };
 
     return response;

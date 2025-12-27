@@ -1,3 +1,25 @@
+// Update Network stats display
+function updateNetworkStats() {
+  const monitoringData = getMonitoringData();
+  const networkData = monitoringData.network.current;
+  if (!networkData) return;
+
+  // Calculate total RX/TX bandwidth for all interfaces (kB/s)
+  const totalRx = networkData.interfaces.reduce((acc, iface) => acc + (iface.rx_kBs || 0), 0);
+  const totalTx = networkData.interfaces.reduce((acc, iface) => acc + (iface.tx_kBs || 0), 0);
+
+  const networkStats = document.getElementById('network-stats');
+  networkStats.innerHTML = `
+    <div class="stat-item network-stat">
+      <div class="stat-label">Total RX</div>
+      <div class="stat-value">${totalRx.toFixed(2)} kB/s</div>
+    </div>
+    <div class="stat-item network-stat">
+      <div class="stat-label">Total TX</div>
+      <div class="stat-value">${totalTx.toFixed(2)} kB/s</div>
+    </div>
+  `;
+}
 import { getMonitoringData } from './data-service.js';
 import { thresholds } from './config.js';
 
@@ -297,6 +319,7 @@ function updateAllComponents() {
   updateMemoryStats();
   updateGpuDisplay();
   updateDiskDisplay();
+  updateNetworkStats();
   updateStatusIndicators();
   updateLastUpdateTime();
 }
@@ -305,6 +328,7 @@ export {
   updateCpuStats, 
   updateMemoryStats, 
   updateGpuDisplay, 
+  updateNetworkStats,
   updateStatusIndicators, 
   updateLastUpdateTime,
   updateAllComponents 
