@@ -7,7 +7,8 @@ let monitoringData = {
   gpus: { history: [], current: [] },
   disk: { history: [], current: null },
   system: { history: [], current: null },
-  network: { history: [], current: null }
+  network: { history: [], current: null },
+  docker: { history: [], current: null }
 };
 
 // Fetch real data from API
@@ -95,6 +96,13 @@ function processData(data) {
   if (data.system) {
     monitoringData.system.current = data.system;
   }
+
+  // Process Docker data
+  if (data.docker) {
+    monitoringData.docker.current = data.docker;
+    // For Docker, we don't track history in the same way as CPU/memory
+    // We just keep the current data for display
+  }
 }
 
 // Transform API response to expected format
@@ -117,7 +125,8 @@ function transformApiData(apiData) {
     gpus: apiData.gpus || apiData.gpu_list || [],
     disk: apiData.disk || {},
     system: apiData.system || {},
-    network: apiData.network || null
+    network: apiData.network || null,
+    docker: apiData.docker || {}
   };
 }
 
@@ -183,6 +192,24 @@ function generateMockData() {
       diskUsed: 250 + Math.random() * 100,
       diskTotal: 1000,
       processes: 150 + Math.floor(Math.random() * 50)
+    },
+    docker: {
+      containers: [
+        {
+          id: "a1b2c3d4e5f6",
+          name: "nginx-server",
+          image: "nginx:latest",
+          status: "Up 2 hours",
+          ports: ["80/tcp", "443/tcp"]
+        },
+        {
+          id: "f6e5d4c3b2a1",
+          name: "mysql-database",
+          image: "mysql:8.0",
+          status: "Up 3 days",
+          ports: ["3306/tcp"]
+        }
+      ]
     }
   };
 }

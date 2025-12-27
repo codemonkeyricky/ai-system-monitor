@@ -4,6 +4,7 @@ const { getMemoryUtilization } = require('./memoryData');
 const { getDiskUsage } = require('./diskData');
 const os = require('os');
 const { getNetworkBandwidth } = require('./networkData');
+const { getDockerContainers } = require('./dockerData');
 
 // Helper function to get all monitoring data
 async function getAllMonitoringData() {
@@ -23,6 +24,9 @@ async function getAllMonitoringData() {
     // Get network bandwidth data
     const networkData = await getNetworkBandwidth();
 
+    // Get Docker containers data
+    const dockerContainers = await getDockerContainers();
+
     // Create combined response
     const response = {
       timestamp: new Date().toISOString(),
@@ -35,7 +39,10 @@ async function getAllMonitoringData() {
       },
       memory: memoryData.memoryUsage,
       disk: diskData,
-      network: networkData
+      network: networkData,
+      docker: {
+        containers: dockerContainers
+      }
     };
 
     return response;

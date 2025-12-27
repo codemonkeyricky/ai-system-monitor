@@ -313,6 +313,87 @@ function updateDiskDisplay() {
   updateFilesystemsList(diskData);
 }
 
+// Function to update Docker containers display
+function updateDockerDisplay() {
+  try {
+    const monitoringData = getMonitoringData();
+
+    // Check if monitoring data exists and has docker property
+    if (!monitoringData || !monitoringData.docker) {
+      console.warn('Docker data not found in monitoring data');
+      return;
+    }
+
+    console.log('### monitoring data:', monitoringData); // Debug line
+
+    // Access containers properly based on API response structure
+    const containers = monitoringData.docker.current.containers || [];
+
+    console.log('Docker containers from monitoring data:', containers); // Debug line
+
+    const containerList = document.getElementById('docker-containers-list');
+    const totalCountElement = document.getElementById('docker-total-count');
+    const runningCountElement = document.getElementById('docker-running-count');
+
+    // Update summary
+    if (totalCountElement) {
+      totalCountElement.textContent = containers.length;
+    }
+
+    const runningContainers = containers.filter(c =>
+      c.status && (c.status.toLowerCase().includes('up') || c.status.toLowerCase().includes('running'))
+    );
+
+    if (runningCountElement) {
+      runningCountElement.textContent = runningContainers.length;
+    }
+
+    // Update container list
+    if (containerList) {
+      if (containers.length === 0) {
+        containerList.innerHTML = '<p style="color: #a3d5ff; text-align: center;">No containers found</p>';
+        return;
+      }
+
+      const containersHTML = containers.map(container => {
+        // Ensure container properties exist
+        const name = container.name || '<unnamed>';
+        const id = container.id || '';
+        const image = container.image || 'unknown';
+        const status = container.status || 'unknown';
+
+        // Determine status class
+        let statusClass = 'status-exited';
+        if (status.toLowerCase().includes('up') || status.toLowerCase().includes('running')) {
+          statusClass = 'status-running';
+        }
+
+        // Format ports display
+        const portsDisplay = (container.ports && container.ports.length > 0) ?
+          `<div class="docker-container-ports">Ports: ${container.ports.join(', ')}</div>` : '';
+
+        return `
+          <div class="docker-container-item">
+            <div class="docker-container-header">
+              <div>
+                <div class="docker-container-name">${name}</div>
+                <div class="docker-container-id">${id}</div>
+              </div>
+              <div class="docker-container-status ${statusClass}">${status}</div>
+            </div>
+            <div class="docker-container-image">Image: ${image}</div>
+            ${portsDisplay}
+          </div>
+        `;
+      }).join('');
+
+      containerList.innerHTML = containersHTML;
+    }
+  } catch (error) {
+    console.error('Error updating Docker display:', error);
+  }
+}
+
 // Update all components (unchanged)
 function updateAllComponents() {
   updateCpuStats();
@@ -320,6 +401,7 @@ function updateAllComponents() {
   updateGpuDisplay();
   updateDiskDisplay();
   updateNetworkStats();
+  updateDockerDisplay();
   updateStatusIndicators();
   updateLastUpdateTime();
 }

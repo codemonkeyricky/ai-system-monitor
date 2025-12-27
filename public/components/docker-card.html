@@ -1,0 +1,171 @@
+<!-- Docker Containers Card Component -->
+<div class="card" id="docker-card">
+  <div class="card-header">
+    <h2 class="card-title docker-title">
+      <i>🐳</i> Docker Containers
+    </h2>
+    <div class="status-indicator status-ok" id="docker-status"></div>
+  </div>
+  <div class="docker-containers-list" id="docker-containers-list">
+    <!-- Container items will be populated by JavaScript -->
+  </div>
+  <div class="docker-summary" id="docker-summary">
+    <div class="summary-item">
+      <div class="summary-label">Total Containers</div>
+      <div class="summary-value" id="docker-total-count">0</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Running</div>
+      <div class="summary-value" id="docker-running-count">0</div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .docker-title {
+    color: #4caf50;
+  }
+
+  .docker-containers-list {
+    margin-top: 15px;
+  }
+
+  .docker-container-item {
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 4px solid #4caf50;
+  }
+
+  .docker-container-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .docker-container-name {
+    font-weight: 600;
+    color: #a3d5ff;
+  }
+
+  .docker-container-id {
+    font-size: 0.8rem;
+    color: #9e9e9e;
+  }
+
+  .docker-container-image {
+    font-size: 0.9rem;
+    color: #c8e6c9;
+    margin-bottom: 5px;
+  }
+
+  .docker-container-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .status-running {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+  }
+
+  .status-exited {
+    background-color: rgba(244, 67, 54, 0.2);
+    color: #f44336;
+  }
+
+  .docker-container-ports {
+    font-size: 0.8rem;
+    color: #9e9e9e;
+    margin-top: 5px;
+  }
+
+  .docker-summary {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+  }
+
+  .summary-item {
+    text-align: center;
+  }
+
+  .summary-label {
+    font-size: 0.8rem;
+    color: #9e9e9e;
+    margin-bottom: 5px;
+  }
+
+  .summary-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #4caf50;
+  }
+</style>
+
+<script>
+  // Function to update Docker containers display
+  function updateDockerDisplay() {
+    const monitoringData = getMonitoringData();
+    const containers = monitoringData.docker.containers || [];
+
+    const containerList = document.getElementById('docker-containers-list');
+    const totalCountElement = document.getElementById('docker-total-count');
+    const runningCountElement = document.getElementById('docker-running-count');
+
+    // Update summary
+    if (totalCountElement) {
+      totalCountElement.textContent = containers.length;
+    }
+
+    const runningContainers = containers.filter(c => c.status.toLowerCase().includes('up') || c.status.toLowerCase().includes('running'));
+    if (runningCountElement) {
+      runningCountElement.textContent = runningContainers.length;
+    }
+
+    // Update container list
+    if (containerList) {
+      if (containers.length === 0) {
+        containerList.innerHTML = '<p style="color: #a3d5ff; text-align: center;">No containers found</p>';
+        return;
+      }
+
+      const containersHTML = containers.map(container => {
+        // Determine status class
+        let statusClass = 'status-exited';
+        if (container.status.toLowerCase().includes('up') || container.status.toLowerCase().includes('running')) {
+          statusClass = 'status-running';
+        }
+
+        // Format ports display
+        const portsDisplay = container.ports.length > 0 ?
+          `<div class="docker-container-ports">Ports: ${container.ports.join(', ')}</div>` : '';
+
+        return `
+          <div class="docker-container-item">
+            <div class="docker-container-header">
+              <div>
+                <div class="docker-container-name">${container.name}</div>
+                <div class="docker-container-id">${container.id}</div>
+              </div>
+              <div class="docker-container-status ${statusClass}">${container.status}</div>
+            </div>
+            <div class="docker-container-image">Image: ${container.image}</div>
+            ${portsDisplay}
+          </div>
+        `;
+      }).join('');
+
+      containerList.innerHTML = containersHTML;
+    }
+  }
+</script>

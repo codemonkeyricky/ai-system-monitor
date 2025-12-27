@@ -31,18 +31,19 @@ async function loadComponent(componentName) {
 async function initializeDashboard() {
   try {
 
-    // Load all components in parallel (add network)
-    const [cpuHtml, gpuHtml, memoryHtml, diskHtml, networkHtml] = await Promise.all([
+    // Load all components in parallel (add network and docker)
+    const [cpuHtml, gpuHtml, memoryHtml, diskHtml, networkHtml, dockerHtml] = await Promise.all([
       loadComponent('cpu-card'),
       loadComponent('gpu-card'),
       loadComponent('memory-card'),
       loadComponent('disk-card'),
-      loadComponent('network-card')
+      loadComponent('network-card'),
+      loadComponent('docker-card')
     ]);
 
     // Insert components into dashboard
     const dashboardGrid = document.getElementById('dashboard-grid');
-    dashboardGrid.innerHTML = cpuHtml + gpuHtml + memoryHtml + diskHtml + networkHtml;
+    dashboardGrid.innerHTML = cpuHtml + gpuHtml + memoryHtml + diskHtml + networkHtml + dockerHtml;
 
 
     // Now initialize the charts
