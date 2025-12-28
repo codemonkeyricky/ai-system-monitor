@@ -1,7 +1,20 @@
-const os = require('os');
+import * as os from 'os';
+
+// Define TypeScript interface for Memory data
+export interface MemoryData {
+  timestamp: string;
+  memoryUsage: {
+    total: number;
+    used: number;
+    free: number;
+    available: number;
+    buffCache: number;
+    percentage: number;
+  };
+}
 
 // Helper function to get memory utilization
-function getMemoryUtilization() {
+function getMemoryUtilization(): MemoryData {
   try {
     const totalMemory = os.totalmem();
     const freeMemory = os.freemem();
@@ -21,10 +34,10 @@ function getMemoryUtilization() {
         percentage: parseFloat(percentage.toFixed(1))
       }
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching memory data:', error);
     throw new Error('Failed to fetch memory data');
   }
 }
 
-module.exports = { getMemoryUtilization };
+export { getMemoryUtilization };

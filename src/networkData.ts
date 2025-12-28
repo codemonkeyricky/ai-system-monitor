@@ -1,8 +1,20 @@
-// src/networkData.js
-const { exec } = require('child_process');
+// src/networkData.ts
+import { exec } from 'child_process';
+
+// Define TypeScript interfaces for Network data
+export interface NetworkInterface {
+  iface: string;
+  rx_kBs: number;
+  tx_kBs: number;
+}
+
+export interface NetworkData {
+  timestamp: string;
+  interfaces: NetworkInterface[];
+}
 
 // Helper to parse sar output for rxkB/s
-function parseSarNetwork(output) {
+function parseSarNetwork(output: string): NetworkInterface[] {
   const lines = output.trim().split('\n');
   // Find header line
   let headerIdx = -1;
@@ -31,7 +43,7 @@ function parseSarNetwork(output) {
 }
 
 // Get network bandwidth data using sar
-function getNetworkBandwidth() {
+function getNetworkBandwidth(): Promise<NetworkData> {
   return new Promise((resolve, reject) => {
     const cmd = "sar -n DEV 1 1 | grep -i average | grep -v lo";
     exec(cmd, (err, stdout, stderr) => {
@@ -39,11 +51,11 @@ function getNetworkBandwidth() {
       try {
         const parsed = parseSarNetwork(stdout);
         resolve({ timestamp: new Date().toISOString(), interfaces: parsed });
-      } catch (e) {
+      } catch (e: any) {
         reject(e);
       }
     });
   });
 }
 
-module.exports = { getNetworkBandwidth };
+export { getNetworkBandwidth };

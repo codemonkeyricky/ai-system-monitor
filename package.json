@@ -2,11 +2,12 @@
   "name": "gpu-monitor",
   "version": "1.0.0",
   "description": "NVIDIA GPU & CPU Monitoring System",
-  "main": "server.js",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "debug": "DEBUG=true nodemon server.js"
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "nodemon --exec ts-node src/server.ts",
+    "debug": "DEBUG=true nodemon --exec ts-node src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +16,10 @@
     "express": "^4.18.2"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "@types/node": "^20.11.30",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.4.5"
   },
   "repository": {
     "type": "git",

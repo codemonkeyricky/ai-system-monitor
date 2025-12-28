@@ -1,11 +1,20 @@
-// src/dockerData.js
-const { exec } = require('child_process');
-const util = require('util');
+// src/dockerData.ts
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
-const execPromise = util.promisify(exec);
+const execPromise = promisify(exec);
+
+// Define TypeScript interface for Docker container data
+export interface DockerContainer {
+  id: string;
+  name: string;
+  image: string;
+  status: string;
+  ports?: string[];
+}
 
 // Helper function to parse Docker ps output
-function parseDockerPs(output) {
+function parseDockerPs(output: string): DockerContainer[] {
   if (!output || !output.trim()) {
     return [];
   }
@@ -90,11 +99,11 @@ function parseDockerPs(output) {
       status: status || 'unknown',
       ports: ports && ports !== '-' ? ports.split(',').map(p => p.trim()) : []
     };
-  }).filter(Boolean);
+  }).filter(Boolean) as DockerContainer[];
 }
 
 // Helper function to get Docker containers
-async function getDockerContainers() {
+async function getDockerContainers(): Promise<DockerContainer[]> {
   try {
     // Get running containers using docker ps with table format
     const { stdout, stderr } = await execPromise(
@@ -110,11 +119,11 @@ async function getDockerContainers() {
     const containers = parseDockerPs(stdout);
 
     return containers;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching Docker containers:', error);
     // Return empty array on error, following existing patterns
     return [];
   }
 }
 
-module.exports = { getDockerContainers, parseDockerPs };
+export { getDockerContainers, parseDockerPs };

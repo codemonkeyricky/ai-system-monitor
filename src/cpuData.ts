@@ -1,16 +1,40 @@
+import * as os from 'os';
+import * as fs from 'fs/promises';
 
-const os = require('os');
-const fs = require('fs').promises; // Use async fs
+// Define TypeScript interfaces for CPU data
+interface CpuTimes {
+  user: number;
+  nice: number;
+  sys: number;
+  idle: number;
+  irq: number;
+}
+
+interface CpuInfo {
+  model: string;
+  speed: number;
+  times: CpuTimes;
+}
+
+export interface CpuData {
+  usage: number;
+  cores: number;
+  coreUtilizations: {
+    idle: number;
+    total: number;
+    usage: number;
+  }[];
+}
 
 // Store previous CPU times for fallback delta calculation
-let previousCpuTimes = [];
+let previousCpuTimes: { [key: number]: CpuTimes } = {};
 
-async function getCpuUtilization() {
+async function getCpuUtilization(): Promise<CpuData> {
   try {
     // ✅ Linux /proc/stat path with two samples
     const stat1 = await fs.readFile('/proc/stat', 'utf8');
     const cpuLine1 = stat1.split('\n').find(line => line.startsWith('cpu '));
-    const cpuStats1 = cpuLine1.trim().split(/\s+/).slice(1).map(Number);
+    const cpuStats1 = cpuLine1!.trim().split(/\s+/).slice(1).map(Number);
     const total1 = cpuStats1.reduce((a, b) => a + b, 0);
     const idle1 = cpuStats1[3]; // Idle is 4th index (0-based) in /proc/stat
 
@@ -18,7 +42,7 @@ async function getCpuUtilization() {
 
     const stat2 = await fs.readFile('/proc/stat', 'utf8');
     const cpuLine2 = stat2.split('\n').find(line => line.startsWith('cpu '));
-    const cpuStats2 = cpuLine2.trim().split(/\s+/).slice(1).map(Number);
+    const cpuStats2 = cpuLine2!.trim().split(/\s+/).slice(1).map(Number);
     const total2 = cpuStats2.reduce((a, b) => a + b, 0);
     const idle2 = cpuStats2[3];
 
@@ -28,14 +52,14 @@ async function getCpuUtilization() {
     const overallUsage = totalDelta > 0 ? Math.min(100, ((totalDelta - idleDelta) / totalDelta) * 100) : 0;
 
     // Calculate per-core usage (repeat delta logic for each cpuX line)
-    const coreStats = [];
+    const coreStats: { coreId: number; usage: number }[] = [];
     stat2.split('\n').forEach(line => {
       if (line.startsWith('cpu') && !line.startsWith('cpu ')) {
         const parts = line.trim().split(/\s+/).slice(1).map(Number);
         const coreTotal = parts.reduce((a, b) => a + b, 0);
         const coreIdle = parts[3];
         const coreLine1 = stat1.split('\n').find(l => l.startsWith(line.split(' ')[0]));
-        const coreParts1 = coreLine1.trim().split(/\s+/).slice(1).map(Number);
+        const coreParts1 = coreLine1!.trim().split(/\s+/).slice(1).map(Number);
         const coreTotal1 = coreParts1.reduce((a, b) => a + b, 0);
         const coreIdle1 = coreParts1[3];
         const coreDelta = coreTotal - coreTotal1;
@@ -51,12 +75,12 @@ async function getCpuUtilization() {
       coreUtilizations: coreStats.sort((a, b) => a.coreId - b.coreId).map(c => ({ idle: 0, total: 0, usage: c.usage }))
     };
 
-  } catch (error) {
+  } catch (error: any) {
     // ✅ Fallback with real delta calculation (no fake values)
     const currentCpus = os.cpus();
     const coreUsages = currentCpus.map((cpu, i) => {
       const prev = previousCpuTimes[i] || cpu.times;
-      const totalDelta = cpu.times.total - prev.total;
+      const totalDelta = cpu.times.user + cpu.times.nice + cpu.times.sys + cpu.times.idle - (prev.user + prev.nice + prev.sys + prev.idle);
       const idleDelta = cpu.times.idle - prev.idle;
       const usage = totalDelta > 0 ? Math.min(100, ((totalDelta - idleDelta) / totalDelta) * 100) : 0;
       previousCpuTimes[i] = cpu.times; // Update stored sample
@@ -64,8 +88,21 @@ async function getCpuUtilization() {
     });
 
     // Overall usage from all cores
-    const totalDelta = currentCpus.reduce((sum, cpu) => sum + (cpu.times.total - (previousCpuTimes[cpu.coreId]?.total || 0)), 0);
-    const idleDelta = currentCpus.reduce((sum, cpu) => sum + (cpu.times.idle - (previousCpuTimes[cpu.coreId]?.idle || 0)), 0);
+    let totalDelta = 0;
+    let idleDelta = 0;
+
+    for (let i = 0; i < currentCpus.length; i++) {
+      const cpu = currentCpus[i];
+      const prev = previousCpuTimes[i] || cpu.times;
+
+      // Calculate total time delta correctly
+      const cpuTotalDelta = cpu.times.user + cpu.times.nice + cpu.times.sys + cpu.times.idle - (prev.user + prev.nice + prev.sys + prev.idle);
+      const cpuIdleDelta = cpu.times.idle - prev.idle;
+
+      totalDelta += cpuTotalDelta;
+      idleDelta += cpuIdleDelta;
+    }
+
     const overallUsage = totalDelta > 0 ? Math.min(100, ((totalDelta - idleDelta) / totalDelta) * 100) : 0;
 
     return {
@@ -76,5 +113,4 @@ async function getCpuUtilization() {
   }
 }
 
-module.exports = { getCpuUtilization };
-
+export { getCpuUtilization };

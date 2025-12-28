@@ -1,13 +1,42 @@
-// File: diskData.js
-const fs = require('fs');                      // For sync FS fallback
-const os = require('os');
-const util = require('util');
-const { exec } = require('child_process');
-const execPromise = util.promisify(exec);     // Async exec wrapper
+// File: diskData.ts
+import * as fs from 'fs';
+import * as os from 'os';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execPromise = promisify(exec);
+
+// Define TypeScript interfaces for Disk data
+export interface NvmeDevice {
+  path: string;
+  mountPoint: string;
+  total: number;
+  used: number;
+  free: number;
+  percentage: number;
+  humanSize: string;
+  humanUsed: string;
+  humanFree: string;
+}
+
+export interface DiskData {
+  timestamp: string;
+  root: {
+    total: number;
+    used: number;
+    free: number;
+    percentage: number;
+    humanSize?: string;
+    humanUsed?: string;
+    humanFree?: string;
+  };
+  nvmeDevices: NvmeDevice[];
+  totalNvmeCount: number;
+}
 
 // Helper: Convert human-readable size (e.g., "915G", "6.2M") to bytes
-function humanToBytes(sizeStr) {
-  const unitMap = {
+function humanToBytes(sizeStr: string): number {
+  const unitMap: { [key: string]: number } = {
     B: 1,
     K: 1024,
     M: 1024 ** 2,
@@ -32,14 +61,14 @@ function humanToBytes(sizeStr) {
 }
 
 // Helper: Parse "df -h | grep /dev/nvme" output into NVMe device data
-function parseNvmeFromDfH(output) {
+function parseNvmeFromDfH(output: string): NvmeDevice[] {
   const lines = output.trim().split('\n');
-  const nvmeDevices = [];
+  const nvmeDevices: NvmeDevice[] = [];
 
   for (const line of lines) {
     // Split by WHITESPACE (handles multiple spaces in df -h output)
     const parts = line.split(/\s+/).filter(Boolean);
-    
+
     // df -h has 6 columns: Filesystem, Size, Used, Avail, Use%, Mounted on
     if (parts.length < 6) {
       console.debug('Skipping invalid df -h line (too few columns):', line);
@@ -93,10 +122,15 @@ function parseNvmeFromDfH(output) {
 }
 
 // Main function: Get NVMe-focused disk usage
-async function getDiskUsage() {
+async function getDiskUsage(): Promise<DiskData> {
   try {
-    let nvmeFilesystems = [];
-    let rootStats = {};
+    let nvmeFilesystems: NvmeDevice[] = [];
+    let rootStats: DiskData['root'] = {
+      total: 0,
+      used: 0,
+      free: 0,
+      percentage: 0
+    };
     let hasNvmeRoot = false;
 
     // Step 1: Try to get NVMe data via "df -h | grep /dev/nvme" (Linux-only)
@@ -129,7 +163,7 @@ async function getDiskUsage() {
       } else if (nvmeFilesystems.length > 0) {
         console.debug('NVMe devices exist but none mounted at root (/); using fallback for root');
       }
-    } catch (dfError) {
+    } catch (dfError: any) {
       // Handle common errors gracefully
       if (dfError.code === 'ENOENT') {
         console.warn('"df" or "grep" not found (non-Linux system?); falling back to memory stats');
@@ -156,7 +190,7 @@ async function getDiskUsage() {
           free: Math.round(freeBytes / (1024 * 1024)),
           percentage: parseFloat(percentage.toFixed(1))
         };
-      } catch (statError) {
+      } catch (statError: any) {
         // Fallback 2: Use system memory (last resort for Windows/Linux)
         console.warn('Failed to get root stats; using system memory approximation');
         const totalBytes = os.totalmem();
@@ -181,7 +215,7 @@ async function getDiskUsage() {
       totalNvmeCount: nvmeFilesystems.length
     };
 
-  } catch (criticalError) {
+  } catch (criticalError: any) {
     // Catch-all for unexpected errors (return safe defaults)
     console.error('Critical error in getDiskUsage:', criticalError);
     return {
@@ -198,4 +232,4 @@ async function getDiskUsage() {
   }
 }
 
-module.exports = { getDiskUsage };
+export { getDiskUsage };
