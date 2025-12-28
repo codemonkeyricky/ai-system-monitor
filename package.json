@@ -2,12 +2,12 @@
   "name": "gpu-monitor",
   "version": "1.0.0",
   "description": "NVIDIA GPU & CPU Monitoring System",
-  "main": "dist/server.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/server.js",
-    "dev": "nodemon --exec ts-node src/server.ts",
-    "debug": "DEBUG=true nodemon --exec ts-node src/server.ts"
+    "start": "node dist/index.js",
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "debug": "DEBUG=true nodemon --exec ts-node src/index.ts"
   },
   "keywords": [],
   "author": "",

@@ -33,14 +33,28 @@ function processData(data) {
     if (data.network) {
       monitoringData.network.current = data.network;
       // For each interface, store rx_kBs+tx_kBs sum for bandwidth
-      const totalBandwidth = (data.network.interfaces || []).reduce((acc, iface) => acc + (iface.rx_kBs || 0) + (iface.tx_kBs || 0), 0);
+      let totalBandwidth = 0;
+      if (data.network.interfaces && Array.isArray(data.network.interfaces)) {
+        totalBandwidth = data.network.interfaces.reduce((acc, iface) => {
+          const rx = iface.rx_kBs || 0;
+          const tx = iface.tx_kBs || 0;
+          return acc + rx + tx;
+        }, 0);
+      }
       // Ensure timestamp is a Date object for d3 scaleTime
       let ts = data.network.timestamp;
-      if (typeof ts === 'string') ts = new Date(ts);
-      monitoringData.network.history.push({
-        timestamp: ts,
-        totalBandwidth
-      });
+      if (typeof ts === 'string') {
+        ts = new Date(ts);
+      } else if (!(ts instanceof Date)) {
+        ts = new Date();
+      }
+      // Validate that we have valid data before adding to history
+      if (!isNaN(totalBandwidth) && isFinite(totalBandwidth) && ts instanceof Date && !isNaN(ts)) {
+        monitoringData.network.history.push({
+          timestamp: ts,
+          totalBandwidth
+        });
+      }
       if (monitoringData.network.history.length > config.maxDataPoints) {
         monitoringData.network.history.shift();
       }

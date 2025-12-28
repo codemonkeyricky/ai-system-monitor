@@ -237,21 +237,60 @@ function updateNetworkChart() {
   d3.select('#network-chart svg').remove();
   const monitoringData = getMonitoringData();
   const history = monitoringData.network.history;
-  if (!history || history.length === 0) return;
+  if (!history || history.length === 0) {
+    // Show placeholder when no data
+    const svg = d3.select('#network-chart').append('svg').attr('width', width).attr('height', height);
+    const centerX = width / 2;
+    const centerY = height / 2;
+    svg.append('text')
+      .attr('x', centerX)
+      .attr('y', centerY)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#4fc3f7')
+      .attr('font-size', '1.5rem')
+      .text('No network data');
+    return;
+  }
 
   const svg = d3.select('#network-chart').append('svg').attr('width', width).attr('height', height);
   if (history.length > 1) {
     const margin = { top: 20, right: 20, bottom: 30, left: 50 };
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
-    const x = d3.scaleTime().domain(d3.extent(history, d => d.timestamp)).range([0, chartWidth]);
-    const y = d3.scaleLinear().domain([0, d3.max(history, d => d.totalBandwidth) || 1]).range([chartHeight, 0]);
-    const line = d3.line().x(d => x(d.timestamp)).y(d => y(d.totalBandwidth)).curve(d3.curveMonotoneX);
+
+    // Validate data to prevent NaN values
+    const validHistory = history.filter(d => d && d.timestamp && d.totalBandwidth !== undefined && !isNaN(d.totalBandwidth) && isFinite(d.totalBandwidth));
+
+    if (validHistory.length < 2) {
+      // Not enough valid data points, show last value as text
+      const centerX = width / 2;
+      const centerY = height / 2;
+      svg.append('text')
+        .attr('x', centerX)
+        .attr('y', centerY)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#4fc3f7')
+        .attr('font-size', '1.5rem')
+        .text(`${validHistory.length > 0 ? validHistory[0].totalBandwidth.toFixed(1) : 0} kB/s`);
+      return;
+    }
+
+    const x = d3.scaleTime().domain(d3.extent(validHistory, d => d.timestamp)).range([0, chartWidth]);
+    const maxBandwidth = d3.max(validHistory, d => d.totalBandwidth);
+    const y = d3.scaleLinear().domain([0, maxBandwidth || 1]).range([chartHeight, 0]);
+
+    const line = d3.line()
+      .x(d => x(d.timestamp))
+      .y(d => y(d.totalBandwidth))
+      .curve(d3.curveMonotoneX);
+
     const chart = svg.append('g').attr('transform', `translate(${margin.left}, ${margin.top})`);
+
     chart.append('g')
       .attr('transform', `translate(0, ${chartHeight})`)
       .call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat('%H:%M:%S')))
       .attr('color', 'rgba(255,255,255,0.5)');
+
     chart.append('g')
       .call(d3.axisLeft(y).ticks(5))
       .attr('color', 'rgba(255,255,255,0.5)')
@@ -263,14 +302,36 @@ function updateNetworkChart() {
         .attr('font-size', '0.9rem')
         .text('kB/s')
       );
-    chart.append('path').datum(history).attr('fill', 'none').attr('stroke', '#4fc3f7').attr('stroke-width', 3).attr('d', line);
-    const area = d3.area().x(d => x(d.timestamp)).y0(chartHeight).y1(d => y(d.totalBandwidth)).curve(d3.curveMonotoneX);
-    chart.append('path').datum(history).attr('fill', '#4fc3f7').attr('fill-opacity', 0.2).attr('d', area);
+
+    chart.append('path')
+      .datum(validHistory)
+      .attr('fill', 'none')
+      .attr('stroke', '#4fc3f7')
+      .attr('stroke-width', 3)
+      .attr('d', line);
+
+    const area = d3.area()
+      .x(d => x(d.timestamp))
+      .y0(chartHeight)
+      .y1(d => y(d.totalBandwidth))
+      .curve(d3.curveMonotoneX);
+
+    chart.append('path')
+      .datum(validHistory)
+      .attr('fill', '#4fc3f7')
+      .attr('fill-opacity', 0.2)
+      .attr('d', area);
   } else {
     // Simple gauge for single data point
     const centerX = width / 2;
     const centerY = height / 2;
-    svg.append('text').attr('x', centerX).attr('y', centerY).attr('text-anchor', 'middle').attr('fill', '#4fc3f7').attr('font-size', '1.5rem').text(`${history[0].totalBandwidth} pkts`);
+    svg.append('text')
+      .attr('x', centerX)
+      .attr('y', centerY)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#4fc3f7')
+      .attr('font-size', '1.5rem')
+      .text(`${history[0].totalBandwidth.toFixed(1)} kB/s`);
   }
 }
 

@@ -67,19 +67,19 @@ npm run debug
 ```
 ai-system-monitor/
 ├── package.json          # Application dependencies and scripts
-├── server.ts             # Main server file with Express.js setup (TypeScript)
-├── index.html            # Frontend dashboard HTML page
 ├── src/
+│   ├── index.ts          # Main server file with Express.js setup (TypeScript)
 │   ├── cpuData.ts        # CPU utilization data collection
 │   ├── diskData.ts       # Disk usage data collection
 │   ├── dockerData.ts     # Docker container monitoring
 │   ├── gpuData.ts        # GPU utilization data collection (requires nvidia-smi)
 │   ├── memoryData.ts     # Memory utilization data collection
 │   ├── monitoringData.ts # Main module that combines all monitoring data
-│   ├── networkData.ts    # Network bandwidth monitoring
-│   └── server.ts         # Server setup and API endpoints
+│   └── networkData.ts    # Network bandwidth monitoring
 ├── public/
 │   ├── index.html        # Main dashboard HTML page
+│   ├── assets/           # Static assets including components
+│   │   └── components/   # Dashboard component HTML files
 │   ├── css/              # Stylesheets
 │   └── js/               # JavaScript files
 └── README.md             # This file
