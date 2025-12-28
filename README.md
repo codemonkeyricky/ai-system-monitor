@@ -11,6 +11,9 @@ A real-time monitoring dashboard for NVIDIA GPUs and system resources (CPU, memo
 - Auto-refresh and manual refresh options
 - Status indicators for resource usage levels
 - Detailed GPU information including power consumption, memory usage, and temperature
+- Docker container monitoring
+- Network bandwidth monitoring
+- Disk usage monitoring
 
 ## Prerequisites
 
@@ -62,15 +65,23 @@ npm run debug
 ## Project Structure
 
 ```
-gpu-monitor/
+ai-system-monitor/
 ├── package.json          # Application dependencies and scripts
-├── server.js             # Main server file with Express.js setup
+├── server.ts             # Main server file with Express.js setup (TypeScript)
 ├── index.html            # Frontend dashboard HTML page
 ├── src/
-│   ├── cpuData.js        # CPU utilization data collection
-│   ├── gpuData.js        # GPU utilization data collection (requires nvidia-smi)
-│   ├── memoryData.js     # Memory utilization data collection
-│   └── monitoringData.js # Main module that combines all monitoring data
+│   ├── cpuData.ts        # CPU utilization data collection
+│   ├── diskData.ts       # Disk usage data collection
+│   ├── dockerData.ts     # Docker container monitoring
+│   ├── gpuData.ts        # GPU utilization data collection (requires nvidia-smi)
+│   ├── memoryData.ts     # Memory utilization data collection
+│   ├── monitoringData.ts # Main module that combines all monitoring data
+│   ├── networkData.ts    # Network bandwidth monitoring
+│   └── server.ts         # Server setup and API endpoints
+├── public/
+│   ├── index.html        # Main dashboard HTML page
+│   ├── css/              # Stylesheets
+│   └── js/               # JavaScript files
 └── README.md             # This file
 ```
 
@@ -85,6 +96,10 @@ gpu-monitor/
 The application uses the following environment variables:
 - `PORT` - Port to run the server on (default: 3000)
 - `DEBUG` - Enable debug logging (set to 'true' for verbose output)
+
+## Dashboard Preview
+
+![System Monitoring Dashboard](dashboard.png)
 
 ## Troubleshooting
 
